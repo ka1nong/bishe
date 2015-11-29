@@ -1,0 +1,13 @@
+#ifndef _CONFIG_MGR_H_
+#define _CONFIG_MGR_H_
+
+class ConfigMgr
+{
+public:
+        ConfigMgr();
+        ~ConfigMgr();
+
+};
+
+#endif// _CONFIG_MGR_H_
+ 

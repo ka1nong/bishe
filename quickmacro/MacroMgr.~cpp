@@ -1,0 +1,136 @@
+#include "MacroMgr.h"
+
+CMacroMgr::CMacroMgr()
+        : m_status(IDLE)
+        , m_hwnd(NULL)
+        , m_hhook(NULL)
+
+{
+
+}
+
+CMacroMgr::~CMacroMgr()
+{
+
+}
+
+bool CMacroMgr::StartRecord(HWND hWnd)
+{
+        if (m_status != IDLE)
+        {
+                return false;
+        }
+
+        _clear();
+
+        m_status = RECORD;
+        m_hhook = ::SetWindowsHookEx(WH_JOURNALRECORD, RecorderFunc,0,0);//todo：第三个参数可能有问题
+        if (!m_hhook)
+        {
+                m_satus = IDLE;
+        }
+        return true;
+}
+
+bool CMacroMgr::StopRecord(int nNotifyCode = 0)
+{
+        return true;
+}
+
+bool	CMacroMgr::StartPlayBack(HWND hWnd,BOOL bDoClear)
+{
+        return true;
+}
+bool    CMacroMgr::StopPlayBack(int nNotifyCode = 0)
+{
+        return true;
+}
+
+bool    CMacroMgr::AddFilter(IFilterExt* filter)
+{
+         m_filters.push(filter);
+         return true;
+}
+
+void    CMacroMgr::DeleteFilter(IFilterExt* filter)
+{
+        for (std::vector<IFilter*>::iterator iter = m_filters.begin(); iter != m_filters.end(); iter++)
+        {
+                if (*iter == filter)
+                {
+                        m_filters.erase(iter);
+                        break;
+                }
+        }
+}
+
+bool    CMacroMgr::ExportToFile(const std::string& fileName)
+{
+        return true;
+}
+
+bool    CMacroMgr::LoopPlayer(int deferSecond)
+{
+        return true;
+}
+
+bool    CMacroMgr::SetShortcutKey()
+{
+        return true;
+}
+
+void    CMacroMgr::_clear()
+{
+
+}
+
+void    CMacroMgr::_lockInseparable()
+{
+
+}
+
+void    CMacroMgr::_unlockInseparable()
+{
+
+}
+
+LRESULT CALLBACK CMacroMgr::RecorderFunc(int nCode, WPARAM wParam, LPARAM lParam )
+{
+        if ( !m_hhook || m_status != RECORD)
+        {
+                return CallNextHookEx(m_hhook, nCode, wParam, lParam);
+        }
+
+        bool bSysModalOn = false;
+	if ( nCode == HC_SYSMODALON )
+        {
+                bSysModalOn = true;
+        }
+	else if ( nCode == HC_SYSMODALOFF )
+        {
+                bSysModalOn = false;
+        }
+
+	if ( nCode == HC_ACTION && !bSysModalOn )
+        {
+                //todo：快捷键
+                //return CallNextHookEx(m_hhook, nCode, wParam, lParam);
+                LPEVENTMSG lpEvent= (LPEVENTMSG)lParam;
+                EVENTMSG event;
+                event.Event.message = lpEvent->message;
+		event.Event.paramL  = lpEvent->paramL;
+		event.Event.paramH  = lpEvent->paramH;
+		event.Event.time = GetTickCount();
+		event.Event.hwnd = NULL;
+                m_EventVec.push(event);
+		//PostMessage(m_hwnd, WM_MANAGER_INFO, RECORD_EVENT, lParam);
+		return 0;
+	}
+
+        return CallNextHookEx(m_hhook, nCode, wParam, lParam);
+}
+
+LRESULT CALLBACK CMacroMgr::PlaybackFunc(int nCode, WPARAM wParam, LPARAM lParam )
+{
+        return 0;
+}

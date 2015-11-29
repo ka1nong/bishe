@@ -1,0 +1,52 @@
+#ifndef _HOOK_MANAGER_H_
+#define _HOOK_MANAGER_H_
+
+#include <string>
+#include "IFilterExt.h"
+#include <vector>
+#include <Windows.h>
+
+class CMacroMgr
+{
+public:
+public:
+	CMacroMgr();
+	virtual ~CMacroMgr();
+
+public:
+	bool	StartRecord(HWND hWnd);
+	bool	StopRecord(int nNotifyCode = 0);
+	bool	StartPlayBack(HWND hWnd,BOOL bDoClear);
+	bool    StopPlayBack(int nNotifyCode = 0);
+        bool    AddFilter(IFilterExt* filter);
+        void    DeleteFilter(IFilterExt* filter);
+        bool    ExportToFile(const std::string& fileName);
+        bool    LoopPlayer(int deferSecond);
+        bool    SetShortcutKey();
+private:
+	void    _clear();
+        void    _lockInseparable();
+        void    _unlockInseparable();
+
+private:
+        enum MACROSTATUS
+        {
+                IDLE            = 0,
+                RECORD          = 1,
+                PLAY_BACK       = 2
+        };
+
+private:
+       static LRESULT CALLBACK RecorderFunc(int nCode, WPARAM wParam, LPARAM lParam );
+       static LRESULT CALLBACK PlaybackFunc(int nCode, WPARAM wParam, LPARAM lParam );
+
+private:
+        std::vector<IFilterExt*>        m_filters;
+        std::vector<EVENTMSG>           m_eventVec;
+        HWND                            m_hwnd;
+        MACROSTATUS                     m_status;
+        HHOOK                           m_hhook;
+};
+
+#endif  //_HOOK_MANAGER_H
+
